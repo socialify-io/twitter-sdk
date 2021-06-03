@@ -1,3 +1,3 @@
-# TwitterSdk
+# Twitter Sdk
 
-A description of this package.
+Sdk for Twitter written in Swift.
