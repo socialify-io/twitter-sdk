@@ -27,9 +27,9 @@ public class TwitterClient {
     ///  - email
     ///  - password
     /// Returns
-    /// - actually nothing
+    /// - true or false
     
-    public func login(email: String, password: String) {
+    public func login(email: String, password: String, completion: @escaping (Result<Bool, TwitterError>) -> Void) {
         let url = URL(string: "https://twitter.com/sessions")!
         
         var request = URLRequest(url: url)
@@ -65,7 +65,11 @@ public class TwitterClient {
         
         let dataTask = session?.dataTask(with: request) { (data, response, error) in
             if let response = response as? HTTPURLResponse {
-                print(response.value(forHTTPHeaderField: "Set-Cookie"))
+                if "\(response.value(forHTTPHeaderField: "Set-Cookie"))".contains("auth_token") {
+                    completion(.success(true))
+                } else {
+                    completion(.success(false))
+                }
             }
         }
         dataTask?.resume()
@@ -74,6 +78,7 @@ public class TwitterClient {
     
     public enum TwitterError: Error {
         case ConnectionError
+        case UnexpectedError
     }
 }
 
