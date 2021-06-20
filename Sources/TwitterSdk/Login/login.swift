@@ -35,7 +35,6 @@ extension TwitterClient {
             "connection": "close",
             "Accept-Encoding": "gzip, deflate",
             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
             "Upgrade-Insecure-Requests": "1",
             "Content-Type": "application/x-www-form-urlencoded"
         ]
@@ -58,16 +57,22 @@ extension TwitterClient {
         request.httpBody = Data(payload.map { "\($0.key)=\($0.value)" }.joined(separator: "&").utf8)
         
         // Sending request
-        let dataTask = session?.dataTask(with: request) { (data, response, error) in
-            if let response = response as? HTTPURLResponse {
-                // Checking is logged in
-                if "\(String(describing: response.value(forHTTPHeaderField: "Set-Cookie")))".contains("auth_token") {
-                    completion(.success(true))
-                } else {
-                    completion(.success(false))
+        self.makeRequest(request: request) { result in
+            switch result {
+            case .success(let result):
+                let response = result["response"]
+                if let response = response as? HTTPURLResponse {
+                    // Checking is logged in
+                    if "\(String(describing: response.value(forHTTPHeaderField: "Set-Cookie")))".contains("auth_token") {
+                        completion(.success(true))
+                    } else {
+                        completion(.success(false))
+                    }
                 }
+            
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
-        dataTask?.resume()
     }
 }
